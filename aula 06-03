@@ -5,11 +5,27 @@ Respostas:
 O microcontrolador analisado foi o ESP32-WROOM-32, seu datasheet pode ser encontrado em: https://www.espressif.com/sites/default/files/documentation/esp32-wroom-32_datasheet_en.pdf
 1. 3.6 V
 2. Sim, algumas das portas de entrada e saída de propósito geral do ESP32 analisado possuem resistores de pull-up e pull-down. As GPIOs 0 e 1, por exemplo, possuem um resistor de pull-up e pull-down respectivamente.
+
+Com o seguinte código é possível setar a orientação de pull-up ou pull-down da porta em questão:
+
+#include <Arduino.h>
+void setup() {
+  pinMode(22,INPUT_PULLDOWN);
+  Serial.begin(9600);
+}
+
+void loop() {
+  Serial.println(digitalRead(22))  
+}
+
 Parte 2 - Porta de saída
     1. Descubra a corrente máxima das portas de saída
 Resposta:
 1. A corrente de saída cumulativa máxima é de 1,1 A.
+
 Parte 3 - Frequência máxima
 Realize experimentos para:
-    1. Avaliar a frequência máxima de saída das portas digitais 
+    1. Avaliar a frequência máxima de saída das portas digitais
+A frequência máxima avaliada foi 1,35MHZ no osciloscópio em aula.
+   
     2. Avaliar a frequência máxima das portas entrada 
