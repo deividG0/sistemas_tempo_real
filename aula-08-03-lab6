@@ -1,0 +1,29 @@
+Parte 1 - Interrupção básica:
+
+link1: https://www.makerhero.com/blog/uso-de-interrupcoes-externas-com-esp32/
+link2: https://lastminuteengineers.com/handling-esp32-gpio-interrupts-tutorial/
+simulador: wokwi.com
+
+struct Button {
+	const uint8_t PIN;
+	bool pressed;
+};
+
+Button button1 = {5, false};
+
+void IRAM_ATTR isr() {
+	button1.pressed = true;
+}
+
+void setup() {
+	Serial.begin(115200);
+	pinMode(button1.PIN, INPUT_PULLUP);
+	attachInterrupt(button1.PIN, isr, FALLING);
+}
+
+void loop() {
+	if (button1.pressed) {
+		Serial.println("Button pressed");
+		button1.pressed = false;
+	}
+}
