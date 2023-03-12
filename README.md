@@ -48,6 +48,43 @@ Camada de dados: Camada seria responsável por gerenciar o armazenamento e a rec
 
 
 ```
+### Modelo de Três Camadas
+
+Camada de Aplicação: esta camada é responsável pela lógica de negócios do sistema e inclui todas as funções e módulos necessários para executar as funcionalidades específicas do sistema. Nesse caso, a camada de aplicação ínclui a captura de áudio do microfone e as informações exibidas no display de 7 segmentos.
+
+Camada de Firmware: esta camada é responsável pela comunicação com o hardware subjacente e inclui o firmware necessário para que o sistema interaja com o microfone e o display de 7 segmentos. A camada de firmware é responsável por garantir que os componentes de hardware funcionem corretamente e que as informações sejam transmitidas entre a camada de aplicação e o hardware subjacente de forma adequada. A captura do áudio a e comunicação com o display de 7 segmentos.
+
+Camada de Hardware: esta camada é responsável pelos componentes físicos do sistema, incluindo o microfone, o display de 7 segmentos e o ESP32. A camada de hardware é responsável por garantir que os componentes funcionem corretamente e possam ser acessados pela camada de firmware e pela camada de aplicação.
+
+```
+_________________________________________________________
+|                    Camada de Aplicação                 |
+|________________________________________________________|
+|                                                        |
+| - Módulo de Captura de Áudio                           |
+| - Módulo de Processamento de Áudio                     |
+| - Módulo de Exibição de Informações no Display         |
+|________________________________________________________|
+
+_________________________________________________________
+|                      Camada de Firmware                |
+|________________________________________________________|
+|                                                        |
+| - Firmware do ESP32                                    |
+| - Módulo de Comunicação com o Microfone (ADC)          |
+| - Módulo de Comunicação com o Display de 7 Segmentos   |
+|________________________________________________________|
+
+_________________________________________________________
+|                       Camada de Hardware               |
+|________________________________________________________|
+|                                                        |
+| - Microfone                                            |
+| - Display de 7 Segmentos                               |
+| - ESP32                                                |
+|________________________________________________________|
+
+```
 
 ### Executivo Ciclico
 
