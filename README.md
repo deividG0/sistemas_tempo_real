@@ -2,6 +2,8 @@
 
 O sistema descrito consiste em um microcontrolador ESP32 conectado a um microfone e um display de 7 segmentos. O objetivo do sistema é capturar o sinal de áudio do microfone, identificar a frequência dominante e exibir essa frequência no display de 7 segmentos.
 
+Para garantir que o sistema atenda aos requisitos de tempo real, foi implementado um executivo cíclico que separa as tarefas em intervalos de tempo fixos e garante que cada tarefa seja executada dentro do prazo estabelecido.
+
 ### Obejetivo
 
 A implementação de um executivo cíclico em um sistema em tempo real, como o descrito (ESP32 conectado a um microfone e um display de 7 segmentos), é importante para garantir que as tarefas sejam executadas em um intervalo de tempo pré-determinado e atendam aos requisitos de tempo real do sistema.
@@ -46,3 +48,14 @@ Camada de dados: Camada seria responsável por gerenciar o armazenamento e a rec
 
 
 ```
+
+### Demonstração
+
+A demonstração abaixo mostra testes de sons vocais e sua identificação no display.
+
+https://user-images.githubusercontent.com/50549048/224558280-c741ed49-0383-4163-88b0-18791d5b31ca.mp4
+
+
+
+
+
