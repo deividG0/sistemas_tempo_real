@@ -94,13 +94,13 @@ _________________________________________________________
 
 ### Executivo Ciclico
 
-Pelos códigos de ```display_tempos``` e ```microfone_1_tempos``` foram calculados o tempo de execução dos algoritmos. A captação do audio e aplicação da FFT dura 31ms, o display dos valores dura 12ms. Para as duas execuções são 43ms. Um executivo de 50ms seria adequado ao sistema, e esse valor foi aplicado.
+Pelos códigos de ```display_tempos``` e ```microfone_1_tempos``` foram calculados o tempo de execução dos algoritmos. A captação do audio e aplicação da FFT dura 31ms, o display dos valores dura 12ms. Para as duas execuções são 43ms. Uma janela de execução de 50ms seria adequado ao sistema, entretanto o valor de 200ms foi escolhido para melhor visualização das frequências dominantes no display de 7 segmentos.
 
 ```
-   |<-------------------------- Ciclo de 50ms --------------------------->|
+   |<----------------------------- Ciclo de 200ms --------------------------->|
    |<-- Execução (31ms) -->|
                            |<---- Exibição (12ms) ---->|
-                                                       |<- Resto (7ms) ->|
+                                                       |<- Espera Interrup. ->|
 
 
 ```
@@ -113,6 +113,8 @@ void loop() {
   }
   
 ```
+A implementação da interrupção com temporizador é feita com o método timerAttachInterrupt() tendo como parâmetros uma variável timer da
+API do ESP32 e a função a ser executada a cada interrupção.
 
 ### Arquivos
 
