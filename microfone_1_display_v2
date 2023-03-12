@@ -24,6 +24,25 @@ arduinoFFT FFT = arduinoFFT(); /* Create FFT object */
 const double samplingFrequency = 16000;
 double vReal[ARRAY_SIZE];
 double vImag[ARRAY_SIZE];
+bool FLAG = true;
+
+#define LED 2
+hw_timer_t *My_timer = NULL;
+
+void IRAM_ATTR onTimer() {
+  FLAG = false;
+  digitalWrite(LED, !digitalRead(LED));
+}
+
+void wait_for_interrupt(){
+  while(true){
+    delay(1);
+    if(FLAG==false){
+      FLAG = true;
+      break;
+    }
+  }
+} 
 
 void setup() {
   Serial.begin(115200);
@@ -71,6 +90,12 @@ void setup() {
 
 
   matrix.begin(0x70);
+
+  pinMode(LED, OUTPUT);
+  My_timer = timerBegin(0, 80, true);
+  timerAttachInterrupt(My_timer, &onTimer, true);
+  timerAlarmWrite(My_timer, 200000, true);
+  timerAlarmEnable(My_timer);  //Just Enable
 }
 
 
@@ -93,10 +118,15 @@ double processAudio(){
   }
 }
 
-void loop() {
-
-  double freq = processAudio();
-  matrix.print((freq/100.00));
+void toDisplay(double x){
+  matrix.print((x/100.00)); 
   matrix.writeDisplay();
+
+}
+
+void loop() {
+  wait_for_interrupt();           //verificação
+  double freq = processAudio();   //31ms
+  toDisplay(freq);                //12ms
   }
   // Serial.println("PRINT");
