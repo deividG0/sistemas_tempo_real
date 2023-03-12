@@ -53,6 +53,14 @@ Camada de dados: Camada seria responsável por gerenciar o armazenamento e a rec
 
 Pelos códigos de display_tempos e microfone_1_tempos foram calculados o tempo de execução dos algoritmos. A captação do audio e aplicação da FFT dura 31ms, o display dos valores dura 12ms. Para as duas execuções são 43ms. Um executivo de 50ms seria adequado ao sistema, e esse valor foi aplicado.
 
+```
+   |<-------------------------- Ciclo de 50ms --------------------------->|
+   |<-- Execução (31ms) -->|
+                           |<---- Exibição (12ms) ---->|
+                                                       |<- Resto (7ms) ->|
+
+```
+   
 ### Demonstração
 
 A demonstração abaixo mostra testes de sons vocais e sua identificação no display.
