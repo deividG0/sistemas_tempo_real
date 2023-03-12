@@ -55,7 +55,7 @@ A demonstração abaixo mostra testes de sons vocais e sua identificação no di
 
 https://user-images.githubusercontent.com/50549048/224558280-c741ed49-0383-4163-88b0-18791d5b31ca.mp4
 
-
+Futuro: realizar demonstração em ambiente de isolamento acustico com produção de frequencia em gerador. 
 
 
 
