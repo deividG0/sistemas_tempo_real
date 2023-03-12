@@ -96,6 +96,16 @@ Pelos códigos de ```display_tempos``` e ```microfone_1_tempos``` foram calculad
                            |<---- Exibição (12ms) ---->|
                                                        |<- Resto (7ms) ->|
 
+
+```
+Em código é possível visualizar isso. A wait_for_interrupt() espera que o ciclo se complete antes de iniciar novamente as tarefas.
+```
+void loop() {
+  wait_for_interrupt();           //Executivo ciclico
+  double freq = processAudio();   //T1 - Processamento de audio, 31ms
+  toDisplay(freq);                //T2 - Impressão no display, 12ms
+  }
+  
 ```
 
 ### Arquivos
