@@ -98,9 +98,9 @@ Pelos códigos de ```display_tempos``` e ```microfone_1_tempos``` foram calculad
 
 ```
    |<----------------------------- Ciclo de 200ms --------------------------->|
-   |<-- Execução (31ms) -->|
-                           |<---- Exibição (12ms) ---->|
-                                                       |<- Espera Interrup. ->|
+   |<-- Execução (31.789ms) -->|
+                           |<---- Exibição (1.745ms) ---->|
+                                                           |<- Media Movel. ->|
 
 
 ```
