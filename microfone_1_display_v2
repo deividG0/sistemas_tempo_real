@@ -24,7 +24,7 @@ arduinoFFT FFT = arduinoFFT(); /* Create FFT object */
 const double samplingFrequency = 16000;
 double vReal[ARRAY_SIZE];
 double vImag[ARRAY_SIZE];
-bool FLAG = true;
+volatile bool FLAG = true;
 
 #define LED 2
 hw_timer_t *My_timer = NULL;
@@ -94,7 +94,7 @@ void setup() {
   pinMode(LED, OUTPUT);
   My_timer = timerBegin(0, 80, true);
   timerAttachInterrupt(My_timer, &onTimer, true);
-  timerAlarmWrite(My_timer, 200000, true);
+  timerAlarmWrite(My_timer, 300000, true);
   timerAlarmEnable(My_timer);  //Just Enable
 }
 
@@ -125,8 +125,9 @@ void toDisplay(double x){
 }
 
 void loop() {
-  wait_for_interrupt();           //verificação
-  double freq = processAudio();   //31ms
-  toDisplay(freq);                //12ms
-  }
+  while(true){
+    wait_for_interrupt();           //verificação
+    double freq = processAudio();   //31ms
+    toDisplay(freq);                //12ms
+  }}
   // Serial.println("PRINT");
