@@ -26,8 +26,30 @@ double vReal[ARRAY_SIZE];
 double vImag[ARRAY_SIZE];
 volatile bool FLAG = true;
 
+double vMedia[5];
+
 #define LED 2
 hw_timer_t *My_timer = NULL;
+
+#define MOVING_AVERAGE_SIZE 20
+
+double movingAverage[MOVING_AVERAGE_SIZE];
+int movingAverageIndex = 0;
+double movingAverageSum = 0;
+
+double movingAverageFilter(double inputValue) {
+  // remove o valor mais antigo da média móvel
+  movingAverageSum -= movingAverage[movingAverageIndex];
+  // adiciona o novo valor na média móvel
+  movingAverageSum += inputValue;
+  // armazena o novo valor no buffer da média móvel
+  movingAverage[movingAverageIndex] = inputValue;
+  // atualiza o índice do buffer
+  movingAverageIndex = (movingAverageIndex + 1) % MOVING_AVERAGE_SIZE;
+  // calcula a média móvel
+  double movingAverageValue = movingAverageSum / MOVING_AVERAGE_SIZE;
+  return movingAverageValue;
+}
 
 void IRAM_ATTR onTimer() {
   FLAG = false;
@@ -128,6 +150,7 @@ void loop() {
   while(true){
     wait_for_interrupt();           //verificação
     double freq = processAudio();   //31ms
+    freq = movingAverageFilter(freq);
     toDisplay(freq);                //12ms
   }}
   // Serial.println("PRINT");
