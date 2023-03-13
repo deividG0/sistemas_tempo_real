@@ -119,7 +119,7 @@ double processAudio(){
 }
 
 void toDisplay(double x){
-  matrix.print((x/100.00)); 
+  matrix.print((x)); 
   matrix.writeDisplay();
 
 }
