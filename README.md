@@ -114,10 +114,10 @@ Desse modo a aplicação desse algoritmo na captação de frequência ajudar a r
 Pelos códigos de ```display_tempos``` e ```microfone_1_tempos``` foram calculados o tempo de execução dos algoritmos. A captação do audio e aplicação da FFT dura 31ms, o display dos valores dura 1.7ms, e a media movél menos que 1ms. Para as três execuções são 33ms. Uma janela de execução de 33ms seria adequado ao sistema, entretanto o valor de 65 foi escolhido para melhor divisão do tempo.
 
 ```
-   |<----------------------------------------- Ciclo de 65ms ----------------------------------------->|
-   |<-------- Execução (31.789ms) --------->|
-                                            |<- Media Movel. (0.07ms) ->|     
-                                                                        |<---- Exibição (1.745ms) ---->|
+   |<--------------------------------- Ciclo de 65ms ---------------------------->|
+   |<---Execução (31.789ms)--->|
+                               |<- Media Movel. (0.07ms) ->|     
+                                                           |<-Exibição (1.745ms)->|
 
 
 ```
