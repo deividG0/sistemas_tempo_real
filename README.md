@@ -5,11 +5,11 @@ O sistema descrito consiste em um microcontrolador ESP32 conectado a um microfon
 Para garantir que o sistema atenda aos requisitos de tempo real, foi implementado um executivo cíclico que separa as tarefas em intervalos de tempo fixos e garante que cada tarefa seja executada dentro do prazo estabelecido.
 ### Materiais Utilizados
 
-*ESP32 WROOM
-*MICROFONE INMP441
-*DISPLAY 0.56" 7-SEG LED 5463AS-F
-*PLATAFORMA ARDUINOIDE
-*BIBLIOTECAS: driver/i2s, arduinoFFT, Wire, Adafruit_GFX, Adafruit_LEDBackpack
+* ESP32 WROOM
+* MICROFONE INMP441
+* DISPLAY 0.56" 7-SEG LED 5463AS-F
+* PLATAFORMA ARDUINOIDE
+* BIBLIOTECAS: arduinoFFT, Adafruit_GFX, Adafruit_LEDBackpack
 ### Objetivo
 
 A implementação de um executivo cíclico em um sistema em tempo real, como o descrito (ESP32 conectado a um microfone e um display de 7 segmentos), é importante para garantir que as tarefas sejam executadas em um intervalo de tempo pré-determinado e atendam aos requisitos de tempo real do sistema.
@@ -69,7 +69,8 @@ _________________________________________________________
 |                                                        |
 | - Módulo de Captura de Áudio                           |
 | - Módulo de Processamento de Áudio                     |
-| - Módulo de Exibição de Informações no Display         |
+| - Módulo de Exibição de Informações no Display         |  
+| - Módulo de Média Móvel                                |
 |________________________________________________________|
 
 _________________________________________________________
@@ -91,16 +92,25 @@ _________________________________________________________
 |________________________________________________________|
 
 ```
+### Média Móvel
+
+O algoritmo de média móvel é uma técnica estatística utilizada para suavizar uma série de dados ao longo do tempo. Ele calcula a média dos valores em um intervalo de tempo definido e, em seguida, desloca esse intervalo de tempo para o próximo conjunto de dados e recalcula a média. Esse processo é repetido até o final da série de dados.
+
+Em uma captação de frequência, o algoritmo de média móvel é utilizado para suavizar as flutuações de frequência ao longo do tempo, evitando que os resultados sejam afetados por interferências eletromagnéticas ou outras fontes de ruído que podem causar flutuações na saída.
+
+Para calcular a média móvel de uma série de frequências o algoritmo irá somar as frequências das ultimas 20 amostras e dividir por 20 - já que temos 20 amostras por segundo em nosso dispositvo ciclico de 50ms, o que daria uma boa suavização. Em seguida, ele irá deslocar o intervalo de tempo em 50ms segundo e recalcular a média com a nova amostra e excluindo a mais antiga.
+
+Desse modo a aplicação desse algoritmo na captação de frequência ajudar a reduzir o ruído e as flutuações de frequência, fornecendo uma saída mais suave e estável. 
 
 ### Executivo Ciclico
 
-Pelos códigos de ```display_tempos``` e ```microfone_1_tempos``` foram calculados o tempo de execução dos algoritmos. A captação do audio e aplicação da FFT dura 31ms, o display dos valores dura 12ms. Para as duas execuções são 43ms. Uma janela de execução de 50ms seria adequado ao sistema, entretanto o valor de 200ms foi escolhido para melhor visualização das frequências dominantes no display de 7 segmentos.
+Pelos códigos de ```display_tempos``` e ```microfone_1_tempos``` foram calculados o tempo de execução dos algoritmos. A captação do audio e aplicação da FFT dura 31ms, o display dos valores dura 1.7ms, e a media movél menos que 1ms. Para as três execuções são 33ms. Uma janela de execução de 33ms seria adequado ao sistema, entretanto o valor de 50 foi escolhido para melhor divisão do tempo.
 
 ```
-   |<----------------------------- Ciclo de 200ms --------------------------->|
-   |<-- Execução (31.789ms) -->|
-                           |<---- Exibição (1.745ms) ---->|
-                                                           |<- Media Movel. ->|
+   |<----------------------------------------- Ciclo de 50ms --------------------------------------------->|
+   |<-------- Execução (31.789ms) --------->|
+                                            |<- Media Movel. (0.07ms) ->|     
+                                                                        |<-- Exibição (1.745ms) -->|
 
 
 ```
