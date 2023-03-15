@@ -138,11 +138,9 @@ API do ESP32 e a função a ser executada a cada interrupção.
    
 ### Demonstração
 
-A demonstração abaixo mostra testes de sons vocais e sua identificação no display.
+A demonstração abaixo mostra aplicação de frequencia e sua identificação no display.
 <p align="center">
-     
-https://user-images.githubusercontent.com/50549048/224558280-c741ed49-0383-4163-88b0-18791d5b31ca.mp4
-
+     ![image](https://user-images.githubusercontent.com/50549048/225274532-f929eff4-85b0-4753-8084-1f4d786c7693.png)
 </p>
  <br />
 Futuro: realizar demonstração em ambiente de isolamento acustico com produção de frequencia em gerador. 
