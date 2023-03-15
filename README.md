@@ -3,6 +3,11 @@
 O sistema descrito consiste em um microcontrolador ESP32 conectado a um microfone e um display de 7 segmentos. O objetivo do sistema é capturar o sinal de áudio do microfone, identificar a frequência dominante e exibir essa frequência no display de 7 segmentos.
 
 Para garantir que o sistema atenda aos requisitos de tempo real, foi implementado um executivo cíclico que separa as tarefas em intervalos de tempo fixos e garante que cada tarefa seja executada dentro do prazo estabelecido.
+
+### Equipe
+Deivid Gomes Silva | Mat.: 2022134345
+Vinicius Meirelles de Siqueira | Mat.: 2020209349
+
 ### Materiais Utilizados
 
 * ESP32 WROOM
@@ -107,34 +112,30 @@ Desse modo a aplicação desse algoritmo na captação de frequência ajudar a r
 Pelos códigos de ```display_tempos``` e ```microfone_1_tempos``` foram calculados o tempo de execução dos algoritmos. A captação do audio e aplicação da FFT dura 31ms, o display dos valores dura 1.7ms, e a media movél menos que 1ms. Para as três execuções são 33ms. Uma janela de execução de 33ms seria adequado ao sistema, entretanto o valor de 65 foi escolhido para melhor divisão do tempo.
 
 ```
-   |<----------------------------------------- Ciclo de 65ms --------------------------------------------->|
+   |<----------------------------------------- Ciclo de 65ms ----------------------------------------->|
    |<-------- Execução (31.789ms) --------->|
                                             |<- Media Movel. (0.07ms) ->|     
-                                                                        |<-- Exibição (1.745ms) -->|
+                                                                        |<---- Exibição (1.745ms) ---->|
 
 
 ```
 Em código é possível visualizar isso. A wait_for_interrupt() espera que o ciclo se complete antes de iniciar novamente as tarefas.
 ```
 void loop() {
-  wait_for_interrupt();           //Executivo ciclico
-  double freq = processAudio();   //T1 - Processamento de audio, 31ms
-  toDisplay(freq);                //T2 - Impressão no display, 12ms
+  while(true){
+    wait_for_interrupt();             //Executivo ciclico
+    double freq = processAudio();     //T1 - Processamento de audio, 31ms
+    freq = movingAverageFilter(freq); //T2 - Média Móvel, 0.07ms
+    toDisplay(freq);                  //T3 - Impressão no display, 1.745ms
   }
-  
+ }
 ```
 A implementação da interrupção com temporizador é feita com o método timerAttachInterrupt() tendo como parâmetros uma variável timer da
 API do ESP32 e a função a ser executada a cada interrupção.
 
 ### Arquivos
 
-
-```microfone_1``` Implementação de escuta do microfone. <br />
-```microfone_1_display``` Implementação de escuta e exibição no display. <br />
-```microfone_1_display_v2``` Implementação de escuta e exibição no display com executivo ciclico. <br />
-```microfone_1_tempos``` Calculo do tempo do processamento do audio. <br />
-```display_tempos``` Calculo do tempo da exibição no display. <br />
-```timer_interrupt``` Função de interrumpção para implementar executivo ciclico. <br />
+```microfone_final_version``` Implementação de escuta e exibição no display com executivo ciclico. <br />
    
 ### Demonstração
 
