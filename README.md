@@ -140,7 +140,9 @@ API do ESP32 e a função a ser executada a cada interrupção.
 
 A demonstração abaixo mostra aplicação de frequencia e sua identificação no display.
 <p align="center">
-     ![image](https://user-images.githubusercontent.com/50549048/225274532-f929eff4-85b0-4753-8084-1f4d786c7693.png)
+
+![image](https://user-images.githubusercontent.com/50549048/225274658-8e4e4c00-be26-4fce-bbe2-4e44adb94775.png)
+
 </p>
  <br />
 Futuro: realizar demonstração em ambiente de isolamento acustico com produção de frequencia em gerador. 
