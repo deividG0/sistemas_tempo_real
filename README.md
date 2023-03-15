@@ -6,6 +6,7 @@ Para garantir que o sistema atenda aos requisitos de tempo real, foi implementad
 
 ### Equipe
 Deivid Gomes Silva | Mat.: 2022134345
+
 Vinicius Meirelles de Siqueira | Mat.: 2020209349
 
 ### Materiais Utilizados
@@ -15,6 +16,7 @@ Vinicius Meirelles de Siqueira | Mat.: 2020209349
 * DISPLAY 0.56" 7-SEG LED 5463AS-F
 * PLATAFORMA ARDUINOIDE
 * BIBLIOTECAS: arduinoFFT, Adafruit_GFX, Adafruit_LEDBackpack
+
 ### Objetivo
 
 A implementação de um executivo cíclico em um sistema em tempo real, como o descrito (ESP32 conectado a um microfone e um display de 7 segmentos), é importante para garantir que as tarefas sejam executadas em um intervalo de tempo pré-determinado e atendam aos requisitos de tempo real do sistema.
