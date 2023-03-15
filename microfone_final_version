@@ -1,0 +1,155 @@
+#include <driver/i2s.h>
+#include "arduinoFFT.h"
+
+#include <Wire.h> // Enable this line if using Arduino Uno, Mega, etc.
+#include <Adafruit_GFX.h>
+#include "Adafruit_LEDBackpack.h"
+
+Adafruit_7segment matrix = Adafruit_7segment();
+
+
+#define I2S_WS 23
+#define I2S_SD 19
+#define I2S_SCK 18
+
+#define I2S_PORT I2S_NUM_0
+#define ARRAY_SIZE 1024
+
+#define SCL_INDEX 0x00
+#define SCL_TIME 0x01
+#define SCL_FREQUENCY 0x02
+#define SCL_PLOT 0x03
+
+arduinoFFT FFT = arduinoFFT(); /* Create FFT object */
+const double samplingFrequency = 16000;
+double vReal[ARRAY_SIZE];
+double vImag[ARRAY_SIZE];
+volatile bool FLAG = true;
+
+double vMedia[5];
+
+#define LED 2
+hw_timer_t *My_timer = NULL;
+
+#define MOVING_AVERAGE_SIZE 20
+
+double movingAverage[MOVING_AVERAGE_SIZE];
+int movingAverageIndex = 0;
+double movingAverageSum = 0;
+
+double movingAverageFilter(double inputValue) {
+  // remove o valor mais antigo da média móvel
+  movingAverageSum -= movingAverage[movingAverageIndex];
+  // adiciona o novo valor na média móvel
+  movingAverageSum += inputValue;
+  // armazena o novo valor no buffer da média móvel
+  movingAverage[movingAverageIndex] = inputValue;
+  // atualiza o índice do buffer
+  movingAverageIndex = (movingAverageIndex + 1) % MOVING_AVERAGE_SIZE;
+  // calcula a média móvel
+  double movingAverageValue = movingAverageSum / MOVING_AVERAGE_SIZE;
+  return movingAverageValue;
+}
+
+void IRAM_ATTR onTimer() {
+  FLAG = false;
+  digitalWrite(LED, !digitalRead(LED));
+}
+
+void wait_for_interrupt(){
+  while(true){
+    delay(1);
+    if(FLAG==false){
+      FLAG = true;
+      break;
+    }
+  }
+} 
+
+void setup() {
+  Serial.begin(115200);
+  esp_err_t err;
+  // The I2S config as per the example
+  const i2s_config_t i2s_config = {
+    .mode = i2s_mode_t(I2S_MODE_MASTER | I2S_MODE_RX),
+    .sample_rate = 16000,
+    .bits_per_sample = i2s_bits_per_sample_t(16),
+    .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
+    .communication_format = i2s_comm_format_t(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
+    .intr_alloc_flags = 0,  // default interrupt priority
+    .dma_buf_count = 8,
+    .dma_buf_len = ARRAY_SIZE,
+    .use_apll = false  // samples per buffer
+  };
+
+  // The pin config as per the setup
+  const i2s_pin_config_t pin_config = {
+    .bck_io_num = I2S_SCK,
+    .ws_io_num = I2S_WS,
+    .data_out_num = -1,
+    .data_in_num = I2S_SD
+  };
+
+  // Configuring the I2S driver and pins.
+  // This function must be called before any I2S driver read/write operations.
+  // err = i2s_driver_install(I2S_PORT, &i2s_config, 0, NULL);
+  i2s_driver_install(I2S_PORT, &i2s_config, 0, NULL);
+  // if (err != ESP_OK) {
+  //   Serial.printf("Failed installing driver: %d\n", err);
+  //   while (true);
+  // }
+  // err = i2s_set_pin(I2S_PORT, &pin_config);
+  i2s_set_pin(I2S_PORT, &pin_config);
+  // if (err != ESP_OK) {
+  //   Serial.printf("Failed setting pin: %d\n", err);
+  //   while (true);
+  // }
+  // Serial.println("I2S driver installed.");
+
+  //#ifndef __AVR_ATtiny85__
+  //#endif
+  //matrix.begin(0x70);
+
+
+  matrix.begin(0x70);
+
+  pinMode(LED, OUTPUT);
+  My_timer = timerBegin(0, 80, true);
+  timerAttachInterrupt(My_timer, &onTimer, true);
+  timerAlarmWrite(My_timer, 65000, true);
+  timerAlarmEnable(My_timer);  //Just Enable
+}
+
+
+int16_t sBuffer[ARRAY_SIZE];
+
+double processAudio(){
+    size_t bytesIn = 0;
+  esp_err_t result = i2s_read(I2S_PORT, sBuffer, sizeof(sBuffer), &bytesIn, /*portMAX_DELAY*/ 10);  // no timeout
+  if (result == ESP_OK && bytesIn > 0) {
+    for (uint16_t i = 0; i < ARRAY_SIZE; i++) {
+      vReal[i] = sBuffer[i] << 8;
+      vImag[i] = 0.0;  //Imaginary part must be zeroed in case of looping to avoid wrong calculations and overflows
+    }
+    FFT.Windowing(vReal, ARRAY_SIZE, FFT_WIN_TYP_HAMMING, FFT_FORWARD);	
+    FFT.Compute(vReal, vImag, ARRAY_SIZE, FFT_FORWARD);
+    FFT.ComplexToMagnitude(vReal, vImag, ARRAY_SIZE);
+    double x = FFT.MajorPeak(vReal, ARRAY_SIZE, samplingFrequency);
+    Serial.printf("%f\n",x);
+    return x;
+  }
+}
+
+void toDisplay(double x){
+  matrix.print((x)); 
+  matrix.writeDisplay();
+}
+
+void loop() {
+  while(true){
+    wait_for_interrupt();           //verificação
+    double freq = processAudio();   //31ms
+    freq = movingAverageFilter(freq);
+    toDisplay(freq);                //12ms
+  }}
+  // Serial.println("PRINT");
