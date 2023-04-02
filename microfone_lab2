@@ -1,0 +1,174 @@
+#include <driver/i2s.h>
+#include "arduinoFFT.h"
+
+#include <Wire.h> 
+#include <Adafruit_GFX.h>
+#include "Adafruit_LEDBackpack.h"
+
+Adafruit_7segment matrix = Adafruit_7segment();
+
+#define I2S_WS 23
+#define I2S_SD 19
+#define I2S_SCK 18
+
+#define I2S_PORT I2S_NUM_0
+#define ARRAY_SIZE 1024
+
+#define SCL_INDEX 0x00
+#define SCL_TIME 0x01
+#define SCL_FREQUENCY 0x02
+#define SCL_PLOT 0x03
+
+arduinoFFT FFT = arduinoFFT();
+const double samplingFrequency = 16000;
+double vReal[ARRAY_SIZE];
+double vImag[ARRAY_SIZE];
+volatile bool FLAG = true;
+
+double vMedia[5];
+
+double Freq = 0;
+
+int16_t sBuffer[ARRAY_SIZE];
+
+#define LED 2
+hw_timer_t *My_timer = NULL;
+
+#define MOVING_AVERAGE_SIZE 20
+
+double movingAverage[MOVING_AVERAGE_SIZE];
+int movingAverageIndex = 0;
+double movingAverageSum = 0;
+
+void movingAverageFilter() {
+  double inputValue = Freq;
+  movingAverageSum -= movingAverage[movingAverageIndex];
+  movingAverageSum += inputValue;
+  movingAverage[movingAverageIndex] = inputValue;
+  movingAverageIndex = (movingAverageIndex + 1) % MOVING_AVERAGE_SIZE;
+  double movingAverageValue = movingAverageSum / MOVING_AVERAGE_SIZE;
+  Freq = movingAverageValue;
+}
+
+void IRAM_ATTR onTimer() {
+  FLAG = false;
+  digitalWrite(LED, !digitalRead(LED));
+}
+
+void wait_for_interrupt(){
+  while(true){
+    delay(1);
+    if(FLAG==false){
+      FLAG = true;
+      break;
+    }
+  }
+} 
+
+void processAudio(){
+    size_t bytesIn = 0;
+  esp_err_t result = i2s_read(I2S_PORT, sBuffer, sizeof(sBuffer), &bytesIn, /*portMAX_DELAY*/ 10);  // no timeout
+  if (result == ESP_OK && bytesIn > 0) {
+    for (uint16_t i = 0; i < ARRAY_SIZE; i++) {
+      vReal[i] = sBuffer[i] << 8;
+      vImag[i] = 0.0;  //Imaginary part must be zeroed in case of looping to avoid wrong calculations and overflows
+    }
+    FFT.Windowing(vReal, ARRAY_SIZE, FFT_WIN_TYP_HAMMING, FFT_FORWARD);	
+    FFT.Compute(vReal, vImag, ARRAY_SIZE, FFT_FORWARD);
+    FFT.ComplexToMagnitude(vReal, vImag, ARRAY_SIZE);
+    double x = FFT.MajorPeak(vReal, ARRAY_SIZE, samplingFrequency);
+    Serial.printf("%f\n",x);
+    Freq = x;
+  }
+}
+
+void toDisplay(){
+  matrix.print((Freq)); 
+  matrix.writeDisplay();
+}
+
+
+typedef struct {
+    uint32_t period;        // task period in ms
+    uint32_t deadline;      // relative deadline in ms
+    uint32_t exec_time;     // execution time in ms
+    void (*task_func)(void);  // pointer to task function
+    uint32_t last_exec_time;  // last execution time in ms
+} task_t;
+
+// Define tasks here
+task_t tasks[] = {
+    {200,  50, 32, &processAudio, 0},
+    {200, 75, 2, &movingAverageFilter, 0},
+    {200, 5, 1, &toDisplay, 0},
+};
+
+
+
+#define NUM_TASKS (sizeof(tasks)/sizeof(task_t))
+
+void schedule(void) {
+    uint32_t min_deadline = UINT32_MAX;
+    uint32_t now = millis();
+
+    // Find the task with the earliest deadline
+    for (int i = 0; i < NUM_TASKS; i++) {
+        task_t *task = &tasks[i];
+        if (now >= task->last_exec_time + task->period) {
+            // Task is ready to run again
+            task->deadline = now + task->period;
+            task->last_exec_time = now;
+        }
+        if (task->deadline < min_deadline) {
+            min_deadline = task->deadline;
+        }
+    }
+
+    for (int i = 0; i < NUM_TASKS; i++) {
+        task_t *task = &tasks[i];
+        if (task->deadline == min_deadline) {
+            task->task_func();
+            task->deadline += task->period;
+            task->last_exec_time = now;
+        }
+    }
+}
+
+void setup() {
+  Serial.begin(115200);
+  esp_err_t err;
+  const i2s_config_t i2s_config = {
+    .mode = i2s_mode_t(I2S_MODE_MASTER | I2S_MODE_RX),
+    .sample_rate = 16000,
+    .bits_per_sample = i2s_bits_per_sample_t(16),
+    .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
+    .communication_format = i2s_comm_format_t(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
+    .intr_alloc_flags = 0,  
+    .dma_buf_count = 8,
+    .dma_buf_len = ARRAY_SIZE,
+    .use_apll = false  
+  };
+
+  const i2s_pin_config_t pin_config = {
+    .bck_io_num = I2S_SCK,
+    .ws_io_num = I2S_WS,
+    .data_out_num = -1,
+    .data_in_num = I2S_SD
+  };
+  
+  i2s_driver_install(I2S_PORT, &i2s_config, 0, NULL);
+  i2s_set_pin(I2S_PORT, &pin_config);
+  
+  matrix.begin(0x70);
+
+  pinMode(LED, OUTPUT);
+  My_timer = timerBegin(0, 80, true);
+  timerAttachInterrupt(My_timer, &onTimer, true);
+  timerAlarmWrite(My_timer, 65000, true);
+  timerAlarmEnable(My_timer);  //Just Enable
+}
+
+void loop() {
+  while(true){
+    schedule();              
+  }}
