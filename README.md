@@ -135,9 +135,63 @@ void loop() {
 A implementação da interrupção com temporizador é feita com o método timerAttachInterrupt() tendo como parâmetros uma variável timer da
 API do ESP32 e a função a ser executada a cada interrupção.
 
+
+### EDF
+
+
+Já sabemos os tempos de cada execução. Então pensando na ordem de execução foram definidos deadlines para as tarefas. 50ms para o processamento de audio. 75 para a média movél, desse modo ela é executada após o processamento e 5ms para o display assim ele estará sempre em exibição. No array foram colocados também o período de execução dessas tarefas para que assim elas sejam executadas uma vez ao menos a cada 200ms. Para as primeiras execuções a ordem das tarefas permanesce pois sempre que é executado é colocado 200ms para a próxima execução. Porém como o processamento de audio demora mais, será adicionado 232ms até o próxima execução então com o acumulo de execuções eventualmente a ordem começa a se alterar.
+
+```
+            +-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+    Tempo   |  0  |  50 | 100 | 150 | 200 | 250 | 300 | 350 | 400 | ... |
+            +-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+    audio   |     |  x  |     |     |  X  |     |     |  X  |     | ... |
+            +-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+    filter  |     |     |  X  |     |     |  X  |     |     |  X  | ... |
+            +-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+    display |  x  |     |     |  X  |     |     |  X  |     |     | ... |
+            +-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+
+
+```
+
+Em código é possível visualizar isso. A primeira parte da função schedule analisa e atualiza as ultimas execuções e atualiza o deadline e depois pega o menor deadline para saber qual tarefa devera ser executada. 
+
+```
+    // Find the task with the earliest deadline
+    for (int i = 0; i < NUM_TASKS; i++) {
+        task_t *task = &tasks[i];
+
+        if (now >= task->last_exec_time + task->period) {
+            // Task is ready to run again
+            task->deadline = now + task->period;
+            task->last_exec_time = now;
+        }
+
+        if (task->deadline < min_deadline) {
+            min_deadline = task->deadline;
+        }
+    }
+```
+Então a função pode entrar no seu próximo loop o qual executa a tarefa de menor deadline.
+
+```
+ for (int i = 0; i < NUM_TASKS; i++) {
+        task_t *task = &tasks[i];
+
+        if (task->deadline == min_deadline) {
+            task->task_func();
+            task->deadline += task->period;
+            task->last_exec_time = now;
+        }
+    }
+
+```
+
 ### Arquivos
 
-```microfone_final_version``` Implementação de escuta e exibição no display com executivo ciclico. <br />
+```microfone_lab1``` Implementação de escuta e exibição no display com executivo ciclico. <br />
+```microfone_lab2``` Implementação de escuta e exibição no display com EDF. <br />
    
 ### Demonstração
 
@@ -148,7 +202,6 @@ A demonstração abaixo mostra aplicação de frequencia e sua identificação n
 
 </p>
  <br />
-Futuro: realizar demonstração em ambiente de isolamento acustico com produção de frequencia em gerador. 
 
 
 
